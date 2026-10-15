@@ -10,7 +10,7 @@ Pull dữ liêu:
 Push dữ liệu: 
     B1: vào cmd 
     B2: Nhập lần lượt vào cmd: 
-git add . 
+\n git add . 
 git status
 git commit -m "<đặt tên cho version + tên của người đăng>"
 git remote add origin https://github.com/ten-cua-ban/ten-repo.git
