@@ -1,7 +1,7 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow
 
-from ui.LoginSrceenEx import LoginSrceenEx
+from ui.LoginSrceenEx1 import LoginSrceenEx
 
 app=QApplication(sys.argv)
 myui=LoginSrceenEx()

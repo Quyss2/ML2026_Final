@@ -2,7 +2,7 @@
 # ML2026_Final
 
 ## 1. Cài đặt database
-Thư mục `databases/` có 1 file dữ liệu (khoảng 100.000 dòng). **Chọn để nạp vào MySQL Workbench của em:
+Thư mục `BT_tren_lop/databases` có 1 file dữ liệu (khoảng 100.000 dòng). **Chọn để nạp vào MySQL Workbench của em:
 - `databaseFinal.sql`
 
 ## 2. Các thư viện cần cài
