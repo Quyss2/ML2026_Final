@@ -1,9 +1,10 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow
-from SaleDatabaseProject.ui.SalesMainWindowEX import SalesMainWindowEx
+
+from ui.LoginSrceenEx1 import LoginSrceenEx
 
 app=QApplication(sys.argv)
-myui=SalesMainWindowEx()
+myui=LoginSrceenEx()
 myui.setupUi(QMainWindow())
 myui.showWindow()
 app.exec()

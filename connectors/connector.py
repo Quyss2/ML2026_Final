@@ -6,7 +6,7 @@ class Connector:
     def __init__(self,
                  server="localhost",
                  port=3306,
-                 database="salesdatabase",
+                 database="final_ml_2026",
                  username="root",
                  password="123"):
         self.server=server
@@ -33,5 +33,16 @@ class Connector:
             print(str(e))
             return None
 
-    def disconnect(self):
-        pass
+    def execute(self,sql,val=None):
+        try:
+            cursor=self.conn.cursor()
+            cursor.execute(sql,val)
+            self.conn.commit()
+            return cursor.lastrowid
+        except Exception as e:
+            self.conn.rollback()
+            print(str(e))
+            return None
+        finally:
+            if "cursor" in locals():
+                cursor.close()
