@@ -31,14 +31,31 @@ class LoginSrceenEx(Ui_MainWindow):
         else:
             self.msgBox.setText("Register Successful")
         self.msgBox.exec()
+
     def process_login(self):
         from dal.user_dao import UserDAO
-        uid = self.admin.text()
+        from ui.mainwindowEX import MainWindowEx
+
+        uid = self.admin.text().strip()
         pwd = self.password.text()
+
         us = UserDAO.login(uid, pwd)
-        self.msgBox=QMessageBox()
+
         if us is None:
-            self.msgBox.setText("Login failed")
-        else:
-            self.msgBox.setText("Login Successful")
-        self.msgBox.exec()
+            QMessageBox.warning(
+                self.MainWindow,
+                "Login",
+                "Login failed"
+            )
+            return
+
+        QMessageBox.information(
+            self.MainWindow,
+            "Login",
+            "Login Successful"
+        )
+
+        self.mainWindow = MainWindowEx()
+        self.mainWindow.show()
+        self.MainWindow.hide()
+
