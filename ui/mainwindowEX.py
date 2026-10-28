@@ -14,6 +14,7 @@ from PyQt6.QtWidgets import (
     QTableWidgetItem,
     QVBoxLayout,
 )
+from PyQt6.QtCore import QDateTime
 from dal.data_dao import DataDAO
 from ui.mainwindow import Ui_MainWindow
 
@@ -26,6 +27,7 @@ class MainWindowEx(QMainWindow):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.displayedData = []
         self.setupSignalAndLot()
         self.ui.tblData.itemSelectionChanged.connect(self.updateSelectedCount)
         self.showDataBase()
@@ -49,7 +51,8 @@ class MainWindowEx(QMainWindow):
         )
         self.ui.btnApplyFilter.clicked.connect(self.ApplyFilter)
         self.ui.btnClearFilter.clicked.connect(self.ClearFilter)
-
+        self.ui.btnDataVisualization.clicked.connect(self.openDataVisualization)
+        self.ui.btnRefresh.clicked.connect(self.refreshData)
     def showDataBase(self):
         data_list = DataDAO.show_all_data()
         if data_list is None:
@@ -59,6 +62,7 @@ class MainWindowEx(QMainWindow):
         self._displayData(data_list)
 
     def _displayData(self, data_list):
+        self.displayedData = list(data_list)
         table = self.ui.tblData
         sorting_enabled = table.isSortingEnabled()
         table.setSortingEnabled(False)
@@ -73,15 +77,20 @@ class MainWindowEx(QMainWindow):
         table.setSortingEnabled(sorting_enabled)
         self.ui.lblRecordCount.setText(f"Tổng: {len(data_list)} bản ghi")
         self.updateSelectedCount()
+        if getattr(self, "dataVisualizationUi", None) is not None:
+            self.dataVisualizationUi.updateCharts(self.displayedData)
 
+    # Bộ lọc
     def setupFilterOptions(self, preserve_selection=False):
         fields = self.DATA_FIELDS[:self.ui.tblData.columnCount()]
         column_combo = self.ui.cbFilterColumn
         selected_column = column_combo.currentData() if preserve_selection else "all"
         column_combo.clear()
         column_combo.addItem("Tất cả cột", "all")
-        for field in fields:
-            column_combo.addItem(field, field)
+        for column_index, field in enumerate(fields):
+            header = self.ui.tblData.horizontalHeaderItem(column_index)
+            label = header.text() if header is not None else field
+            column_combo.addItem(label, field)
         selected_index = column_combo.findData(selected_column)
         column_combo.setCurrentIndex(max(selected_index, 0))
 
@@ -128,12 +137,15 @@ class MainWindowEx(QMainWindow):
     def updatePriceRange(self, preserve_values=False):
         old_from = self.ui.spnPriceFrom.value()
         old_to = self.ui.spnPriceTo.value()
-        price_range = DataDAO.get_price_range(self._selectedCategoryFilters())
-        if price_range is None:
-            QMessageBox.warning(self, "Lỗi", "Không thể tải khoảng giá từ cơ sở dữ liệu.")
+        old_time_from = self.ui.dtFilterFrom.dateTime().toPyDateTime()
+        old_time_to = self.ui.dtFilterTo.dateTime().toPyDateTime()
+        filter_ranges = DataDAO.get_filter_ranges(self._selectedCategoryFilters())
+        if filter_ranges is None:
+            QMessageBox.warning(self, "Lỗi", "Không thể tải khoảng thời gian và giá từ cơ sở dữ liệu.")
             return
 
-        min_price, max_price = price_range
+        min_price = filter_ranges["min_price"]
+        max_price = filter_ranges["max_price"]
         if min_price is None or max_price is None:
             min_price = max_price = 0
 
@@ -148,9 +160,50 @@ class MainWindowEx(QMainWindow):
             min(max(old_to, min_price), max_price) if preserve_values else max_price
         )
 
+        min_event_time = filter_ranges["min_event_time"]
+        max_event_time = filter_ranges["max_event_time"]
+        if min_event_time is not None and max_event_time is not None:
+            if hasattr(min_event_time, "to_pydatetime"):
+                min_event_time = min_event_time.to_pydatetime()
+            if hasattr(max_event_time, "to_pydatetime"):
+                max_event_time = max_event_time.to_pydatetime()
+            minimum = QDateTime.fromString(
+                min_event_time.strftime("%Y-%m-%d %H:%M:%S"),
+                "yyyy-MM-dd HH:mm:ss",
+            )
+            maximum = QDateTime.fromString(
+                max_event_time.strftime("%Y-%m-%d %H:%M:%S"),
+                "yyyy-MM-dd HH:mm:ss",
+            )
+            self.ui.dtFilterFrom.setDateTimeRange(minimum, maximum)
+            self.ui.dtFilterTo.setDateTimeRange(minimum, maximum)
+            self.ui.dtFilterFrom.setDateTime(
+                self._clampDateTime(old_time_from, min_event_time, max_event_time)
+                if preserve_values
+                else minimum
+            )
+            self.ui.dtFilterTo.setDateTime(
+                self._clampDateTime(old_time_to, min_event_time, max_event_time)
+                if preserve_values
+                else maximum
+            )
+
+    @staticmethod
+    def _clampDateTime(value, minimum, maximum):
+        if value < minimum:
+            value = minimum
+        elif value > maximum:
+            value = maximum
+        return QDateTime.fromString(
+            value.strftime("%Y-%m-%d %H:%M:%S"),
+            "yyyy-MM-dd HH:mm:ss",
+        )
+
     def currentFilters(self):
         return {
             **self._selectedCategoryFilters(),
+            "event_time_from": self.ui.dtFilterFrom.dateTime().toPyDateTime(),
+            "event_time_to": self.ui.dtFilterTo.dateTime().toPyDateTime(),
             "price_from": self.ui.spnPriceFrom.value(),
             "price_to": self.ui.spnPriceTo.value(),
             "search_text": self.ui.edtSearch.text().strip(),
@@ -249,6 +302,27 @@ class MainWindowEx(QMainWindow):
                     return None
         return record_ids
 
+    def ApplyFilter(self):
+        data_list = DataDAO.filter_data(self.currentFilters())
+        if data_list is None:
+            QMessageBox.warning(self, "Lỗi", "Không thể lọc dữ liệu từ cơ sở dữ liệu.")
+            return
+        self._displayData(data_list)
+
+    def ClearFilter(self):
+        for combo in (
+            self.ui.cbFilterColumn,
+            self.ui.cbFilterEventType,
+            self.ui.cbFilterBrand,
+            self.ui.cbFilterCategory,
+        ):
+            combo.blockSignals(True)
+            combo.setCurrentIndex(0)
+            combo.blockSignals(False)
+        self.ui.edtSearch.clear()
+        self.updatePriceRange()
+        self.showDataBase()
+
     # CRUD
     def addData(self):
         values = self._recordDialog("Thêm bản ghi")
@@ -337,24 +411,14 @@ class MainWindowEx(QMainWindow):
             f"Đã xuất {len(data_list)} bản ghi ra tệp CSV.",
         )
 
-    # Bộ lọc
-    def ApplyFilter(self):
-        data_list = DataDAO.filter_data(self.currentFilters())
-        if data_list is None:
-            QMessageBox.warning(self, "Lỗi", "Không thể lọc dữ liệu từ cơ sở dữ liệu.")
-            return
-        self._displayData(data_list)
-
-    def ClearFilter(self):
-        for combo in (
-            self.ui.cbFilterColumn,
-            self.ui.cbFilterEventType,
-            self.ui.cbFilterBrand,
-            self.ui.cbFilterCategory,
-        ):
-            combo.blockSignals(True)
-            combo.setCurrentIndex(0)
-            combo.blockSignals(False)
-        self.ui.edtSearch.clear()
-        self.updatePriceRange()
-        self.showDataBase()
+    def openDataVisualization(self):
+        from ui.DataVisualizationEX import DataVisualizationEx
+        if getattr(self, "dataVisualizationWindow", None) is None:
+            self.dataVisualizationWindow = QMainWindow()
+            self.dataVisualizationUi = DataVisualizationEx()
+            self.dataVisualizationUi.setupUi(self.dataVisualizationWindow)
+        self.dataVisualizationUi.updateCharts(self.displayedData)
+        self.dataVisualizationUi.showWindow()
+    def refreshData(self):
+        self.displayedData = DataDAO.filter_data(self.currentFilters())
+        self.updateTable()

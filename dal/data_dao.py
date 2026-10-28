@@ -47,7 +47,7 @@ class DataDAO:
         return df[column].tolist()
 
     @staticmethod
-    def _build_where(filters, include_price=True):
+    def _build_where(filters, include_price=True, include_time=True):
         conditions = []
         params = []
 
@@ -56,6 +56,16 @@ class DataDAO:
             if value is not None:
                 conditions.append(f"`{column}` = %s")
                 params.append(value)
+
+        if include_time:
+            event_time_from = filters.get("event_time_from")
+            event_time_to = filters.get("event_time_to")
+            if event_time_from is not None:
+                conditions.append("`event_time` >= %s")
+                params.append(event_time_from)
+            if event_time_to is not None:
+                conditions.append("`event_time` <= %s")
+                params.append(event_time_to)
 
         if include_price:
             price_from = filters.get("price_from")
@@ -167,3 +177,29 @@ class DataDAO:
         if df is None:
             return None
         return df.iloc[0]["min_price"], df.iloc[0]["max_price"]
+
+    @staticmethod
+    def get_filter_ranges(filters=None):
+        where_clause, params = DataDAO._build_where(
+            filters or {},
+            include_price=False,
+            include_time=False,
+        )
+        conn = Connector()
+        conn.connect()
+        df = conn.queryDataset(
+            "SELECT MIN(`event_time`) AS min_event_time, "
+            "MAX(`event_time`) AS max_event_time, "
+            "MIN(`price`) AS min_price, MAX(`price`) AS max_price "
+            f"FROM data{where_clause}",
+            params,
+        )
+        if df is None:
+            return None
+        row = df.iloc[0]
+        return {
+            "min_event_time": row["min_event_time"],
+            "max_event_time": row["max_event_time"],
+            "min_price": row["min_price"],
+            "max_price": row["max_price"],
+        }
