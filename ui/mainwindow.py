@@ -60,17 +60,16 @@ class Ui_MainWindow(object):
 "QWidget#contentWidget QLabel#lblFilterTable, QWidget#contentWidget QLabel#lblFilterSearch,\n"
 "QWidget#contentWidget QLabel#lblFilterColumn, QWidget#contentWidget QLabel#lblFilterEventType,\n"
 "QWidget#contentWidget QLabel#lblFilterBrand, QWidget#contentWidget QLabel#lblFilterCategory,\n"
-"QWidget#contentWidget QLabel#lblFilterFrom, QWidget#contentWidget QLabel#lblFilterTo,\n"
 "QWidget#contentWidget QLabel#lblFilterPriceFrom, QWidget#contentWidget QLabel#lblFilterPriceTo { font-size: 12px; color: #64748b; }\n"
 "\n"
 "QWidget#contentWidget QLineEdit, QWidget#contentWidget QComboBox,\n"
-"QWidget#contentWidget QDateTimeEdit, QWidget#contentWidget QDoubleSpinBox {\n"
+"QWidget#contentWidget QDoubleSpinBox {\n"
 "    background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px;\n"
 "    padding: 0px 10px; min-height: 34px; font-family: \'Segoe UI\'; font-size: 13px; color: #0f172a;\n"
 "}\n"
 "QWidget#contentWidget QLineEdit:focus, QWidget#contentWidget QComboBox:focus,\n"
-"QWidget#contentWidget QDateTimeEdit:focus, QWidget#contentWidget QDoubleSpinBox:focus { border: 1px solid #2563eb; }\n"
-"QWidget#contentWidget QComboBox::drop-down, QWidget#contentWidget QDateTimeEdit::drop-down { border: none; width: 24px; }\n"
+"QWidget#contentWidget QDoubleSpinBox:focus { border: 1px solid #2563eb; }\n"
+"QWidget#contentWidget QComboBox::drop-down { border: none; width: 24px; }\n"
 "QWidget#contentWidget QComboBox QAbstractItemView {\n"
 "    background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1;\n"
 "    selection-background-color: #eff6ff; selection-color: #1d4ed8; outline: 0;\n"
@@ -317,34 +316,6 @@ class Ui_MainWindow(object):
         self.filterRow3Layout = QtWidgets.QHBoxLayout()
         self.filterRow3Layout.setSpacing(12)
         self.filterRow3Layout.setObjectName("filterRow3Layout")
-        self.lblFilterFromBox = QtWidgets.QVBoxLayout()
-        self.lblFilterFromBox.setSpacing(4)
-        self.lblFilterFromBox.setObjectName("lblFilterFromBox")
-        self.lblFilterFrom = QtWidgets.QLabel(parent=self.filterFrame)
-        self.lblFilterFrom.setObjectName("lblFilterFrom")
-        self.lblFilterFromBox.addWidget(self.lblFilterFrom)
-        self.dtFrom = QtWidgets.QDateTimeEdit(parent=self.filterFrame)
-        self.dtFrom.setMinimumSize(QtCore.QSize(170, 0))
-        self.dtFrom.setCalendarPopup(True)
-        self.dtFrom.setMinimumDateTime(QtCore.QDateTime(QtCore.QDate(2000, 1, 1), QtCore.QTime(0, 0, 0)))
-        self.dtFrom.setDateTime(QtCore.QDateTime(QtCore.QDate(2000, 1, 1), QtCore.QTime(0, 0, 0)))
-        self.dtFrom.setObjectName("dtFrom")
-        self.lblFilterFromBox.addWidget(self.dtFrom)
-        self.filterRow3Layout.addLayout(self.lblFilterFromBox)
-        self.lblFilterToBox = QtWidgets.QVBoxLayout()
-        self.lblFilterToBox.setSpacing(4)
-        self.lblFilterToBox.setObjectName("lblFilterToBox")
-        self.lblFilterTo = QtWidgets.QLabel(parent=self.filterFrame)
-        self.lblFilterTo.setObjectName("lblFilterTo")
-        self.lblFilterToBox.addWidget(self.lblFilterTo)
-        self.dtTo = QtWidgets.QDateTimeEdit(parent=self.filterFrame)
-        self.dtTo.setMinimumSize(QtCore.QSize(170, 0))
-        self.dtTo.setCalendarPopup(True)
-        self.dtTo.setMinimumDateTime(QtCore.QDateTime(QtCore.QDate(2000, 1, 1), QtCore.QTime(0, 0, 0)))
-        self.dtTo.setDateTime(QtCore.QDateTime(QtCore.QDate(2000, 1, 1), QtCore.QTime(0, 0, 0)))
-        self.dtTo.setObjectName("dtTo")
-        self.lblFilterToBox.addWidget(self.dtTo)
-        self.filterRow3Layout.addLayout(self.lblFilterToBox)
         self.lblFilterPriceFromBox = QtWidgets.QVBoxLayout()
         self.lblFilterPriceFromBox.setSpacing(4)
         self.lblFilterPriceFromBox.setObjectName("lblFilterPriceFromBox")
@@ -536,9 +507,7 @@ class Ui_MainWindow(object):
         MainWindow.setTabOrder(self.cbFilterColumn, self.cbFilterEventType)
         MainWindow.setTabOrder(self.cbFilterEventType, self.cbFilterBrand)
         MainWindow.setTabOrder(self.cbFilterBrand, self.cbFilterCategory)
-        MainWindow.setTabOrder(self.cbFilterCategory, self.dtFrom)
-        MainWindow.setTabOrder(self.dtFrom, self.dtTo)
-        MainWindow.setTabOrder(self.dtTo, self.spnPriceFrom)
+        MainWindow.setTabOrder(self.cbFilterCategory, self.spnPriceFrom)
         MainWindow.setTabOrder(self.spnPriceFrom, self.spnPriceTo)
         MainWindow.setTabOrder(self.spnPriceTo, self.btnApplyFilter)
         MainWindow.setTabOrder(self.btnApplyFilter, self.btnClearFilter)
@@ -588,12 +557,6 @@ class Ui_MainWindow(object):
         self.cbFilterBrand.setItemText(0, _translate("MainWindow", "Tất cả thương hiệu"))
         self.lblFilterCategory.setText(_translate("MainWindow", "Danh mục (category_code)"))
         self.cbFilterCategory.setItemText(0, _translate("MainWindow", "Tất cả danh mục"))
-        self.lblFilterFrom.setText(_translate("MainWindow", "Từ thời điểm (event_time)"))
-        self.dtFrom.setSpecialValueText(_translate("MainWindow", "Không giới hạn"))
-        self.dtFrom.setDisplayFormat(_translate("MainWindow", "dd/MM/yyyy HH:mm"))
-        self.lblFilterTo.setText(_translate("MainWindow", "Đến thời điểm"))
-        self.dtTo.setSpecialValueText(_translate("MainWindow", "Không giới hạn"))
-        self.dtTo.setDisplayFormat(_translate("MainWindow", "dd/MM/yyyy HH:mm"))
         self.lblFilterPriceFrom.setText(_translate("MainWindow", "Giá từ (price)"))
         self.spnPriceFrom.setSpecialValueText(_translate("MainWindow", "Không giới hạn"))
         self.lblFilterPriceTo.setText(_translate("MainWindow", "Giá đến"))

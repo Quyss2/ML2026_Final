@@ -66,17 +66,16 @@ QWidget#contentWidget QLabel#lblFilterTitle { font-size: 12px; font-weight: bold
 QWidget#contentWidget QLabel#lblFilterTable, QWidget#contentWidget QLabel#lblFilterSearch,
 QWidget#contentWidget QLabel#lblFilterColumn, QWidget#contentWidget QLabel#lblFilterEventType,
 QWidget#contentWidget QLabel#lblFilterBrand, QWidget#contentWidget QLabel#lblFilterCategory,
-QWidget#contentWidget QLabel#lblFilterFrom, QWidget#contentWidget QLabel#lblFilterTo,
 QWidget#contentWidget QLabel#lblFilterPriceFrom, QWidget#contentWidget QLabel#lblFilterPriceTo { font-size: 12px; color: #64748b; }
 
 QWidget#contentWidget QLineEdit, QWidget#contentWidget QComboBox,
-QWidget#contentWidget QDateTimeEdit, QWidget#contentWidget QDoubleSpinBox {
+QWidget#contentWidget QDoubleSpinBox {
     background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px;
     padding: 0px 10px; min-height: 34px; font-family: 'Segoe UI'; font-size: 13px; color: #0f172a;
 }
 QWidget#contentWidget QLineEdit:focus, QWidget#contentWidget QComboBox:focus,
-QWidget#contentWidget QDateTimeEdit:focus, QWidget#contentWidget QDoubleSpinBox:focus { border: 1px solid #2563eb; }
-QWidget#contentWidget QComboBox::drop-down, QWidget#contentWidget QDateTimeEdit::drop-down { border: none; width: 24px; }
+QWidget#contentWidget QDoubleSpinBox:focus { border: 1px solid #2563eb; }
+QWidget#contentWidget QComboBox::drop-down { border: none; width: 24px; }
 QWidget#contentWidget QComboBox QAbstractItemView {
     background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1;
     selection-background-color: #eff6ff; selection-color: #1d4ed8; outline: 0;
@@ -697,112 +696,6 @@ QFrame#footerBar QLabel { background: transparent; color: #64748b; font-family: 
                 <number>12</number>
                </property>
                <item>
-          <layout class="QVBoxLayout" name="lblFilterFromBox">
-           <property name="spacing">
-            <number>4</number>
-           </property>
-           <item>
-            <widget class="QLabel" name="lblFilterFrom">
-         <property name="text">
-          <string>Từ thời điểm (event_time)</string>
-         </property>
-        </widget>
-           </item>
-           <item>
-            <widget class="QDateTimeEdit" name="dtFrom">
-            <property name="minimumSize">
-             <size>
-              <width>170</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="specialValueText">
-             <string>Không giới hạn</string>
-            </property>
-            <property name="displayFormat">
-             <string>dd/MM/yyyy HH:mm</string>
-            </property>
-            <property name="calendarPopup">
-             <bool>true</bool>
-            </property>
-            <property name="minimumDateTime">
-             <datetime>
-              <hour>0</hour>
-              <minute>0</minute>
-              <second>0</second>
-              <year>2000</year>
-              <month>1</month>
-              <day>1</day>
-             </datetime>
-            </property>
-            <property name="dateTime">
-             <datetime>
-              <hour>0</hour>
-              <minute>0</minute>
-              <second>0</second>
-              <year>2000</year>
-              <month>1</month>
-              <day>1</day>
-             </datetime>
-            </property>
-           </widget>
-           </item>
-          </layout>
-         </item>
-               <item>
-          <layout class="QVBoxLayout" name="lblFilterToBox">
-           <property name="spacing">
-            <number>4</number>
-           </property>
-           <item>
-            <widget class="QLabel" name="lblFilterTo">
-         <property name="text">
-          <string>Đến thời điểm</string>
-         </property>
-        </widget>
-           </item>
-           <item>
-            <widget class="QDateTimeEdit" name="dtTo">
-            <property name="minimumSize">
-             <size>
-              <width>170</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="specialValueText">
-             <string>Không giới hạn</string>
-            </property>
-            <property name="displayFormat">
-             <string>dd/MM/yyyy HH:mm</string>
-            </property>
-            <property name="calendarPopup">
-             <bool>true</bool>
-            </property>
-            <property name="minimumDateTime">
-             <datetime>
-              <hour>0</hour>
-              <minute>0</minute>
-              <second>0</second>
-              <year>2000</year>
-              <month>1</month>
-              <day>1</day>
-             </datetime>
-            </property>
-            <property name="dateTime">
-             <datetime>
-              <hour>0</hour>
-              <minute>0</minute>
-              <second>0</second>
-              <year>2000</year>
-              <month>1</month>
-              <day>1</day>
-             </datetime>
-            </property>
-           </widget>
-           </item>
-          </layout>
-         </item>
-               <item>
           <layout class="QVBoxLayout" name="lblFilterPriceFromBox">
            <property name="spacing">
             <number>4</number>
@@ -1338,8 +1231,6 @@ QFrame#footerBar QLabel { background: transparent; color: #64748b; font-family: 
   <tabstop>cbFilterEventType</tabstop>
   <tabstop>cbFilterBrand</tabstop>
   <tabstop>cbFilterCategory</tabstop>
-  <tabstop>dtFrom</tabstop>
-  <tabstop>dtTo</tabstop>
   <tabstop>spnPriceFrom</tabstop>
   <tabstop>spnPriceTo</tabstop>
   <tabstop>btnApplyFilter</tabstop>
