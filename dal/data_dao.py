@@ -113,9 +113,30 @@ class DataDAO:
         ]
 
     @staticmethod
-    def filter_data(filters):
+    def filter_data(filters, limit=None, offset=0):
         where_clause, params = DataDAO._build_where(filters)
-        return DataDAO._query_data(f"SELECT * FROM data{where_clause}", params)
+        sql = f"SELECT * FROM data{where_clause}"
+        if limit is not None:
+            if limit <= 0:
+                raise ValueError("Limit must be greater than zero")
+            if offset < 0:
+                raise ValueError("Offset cannot be negative")
+            sql += " ORDER BY `id` LIMIT %s OFFSET %s"
+            params.extend((limit, offset))
+        return DataDAO._query_data(sql, params)
+
+    @staticmethod
+    def count_data(filters):
+        where_clause, params = DataDAO._build_where(filters)
+        conn = Connector()
+        conn.connect()
+        df = conn.queryDataset(
+            f"SELECT COUNT(*) AS record_count FROM data{where_clause}",
+            params,
+        )
+        if df is None:
+            return None
+        return int(df.iloc[0]["record_count"])
 
     @staticmethod
     def insert_data(values):

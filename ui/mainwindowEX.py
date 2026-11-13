@@ -2,11 +2,11 @@
 import csv
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
+from pathlib import Path
 
 from PyQt6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
-    QFileDialog,
     QFormLayout,
     QLineEdit,
     QMainWindow,
@@ -28,11 +28,19 @@ class MainWindowEx(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.displayedData = []
+        self.regressionWindow = None
+        self.regressionUi = None
+        self.classificationWindow = None
+        self.classificationUi = None
+        self.currentPage = 1
+        self.pageSize = 10
+        self.totalRecords = 0
+        self.currentPageFilters = {}
         self.setupSignalAndLot()
         self.ui.tblData.itemSelectionChanged.connect(self.updateSelectedCount)
-        self.showDataBase()
         self.setupFilterOptions()
         self.updatePriceRange()
+        self.showDataBase()
 
     def setupSignalAndLot(self):
         self.ui.btnRefresh.clicked.connect(self.refreshData)
@@ -52,14 +60,62 @@ class MainWindowEx(QMainWindow):
         self.ui.btnApplyFilter.clicked.connect(self.ApplyFilter)
         self.ui.btnClearFilter.clicked.connect(self.ClearFilter)
         self.ui.btnDataVisualization.clicked.connect(self.openDataVisualization)
-        self.ui.btnRefresh.clicked.connect(self.refreshData)
+        self.ui.btnRegression.clicked.connect(self.openRegression)
+        self.ui.btnClassification.clicked.connect(self.openClassification)
+        self.ui.cbPageSize.currentIndexChanged.connect(self.changePageSize)
+        self.ui.btnFirstPage.clicked.connect(lambda: self.loadPage(1))
+        self.ui.btnPrevPage.clicked.connect(lambda: self.loadPage(self.currentPage - 1))
+        self.ui.btnNextPage.clicked.connect(lambda: self.loadPage(self.currentPage + 1))
+        self.ui.btnLastPage.clicked.connect(lambda: self.loadPage(self.lastPage))
+
     def showDataBase(self):
-        data_list = DataDAO.show_all_data()
+        self._loadDataPage(self.currentFilters(), page=1)
+
+    @property
+    def lastPage(self):
+        return max(1, (self.totalRecords + self.pageSize - 1) // self.pageSize)
+
+    def _loadDataPage(self, filters, page=None):
+        if page is not None:
+            self.currentPage = page
+
+        total_records = DataDAO.count_data(filters)
+        if total_records is None:
+            QMessageBox.warning(self, "Lỗi", "Không thể đếm dữ liệu từ cơ sở dữ liệu.")
+            return False
+
+        page_count = max(1, (total_records + self.pageSize - 1) // self.pageSize)
+        self.currentPage = min(max(1, self.currentPage), page_count)
+        data_list = DataDAO.filter_data(
+            filters,
+            limit=self.pageSize,
+            offset=(self.currentPage - 1) * self.pageSize,
+        )
         if data_list is None:
             QMessageBox.warning(self, "Lỗi", "Không thể tải dữ liệu từ cơ sở dữ liệu.")
-            return
+            return False
 
+        self.totalRecords = total_records
+        self.currentPageFilters = dict(filters)
         self._displayData(data_list)
+        self.ui.lblPage.setText(f"Trang {self.currentPage} / {page_count}")
+        self.ui.btnFirstPage.setEnabled(self.currentPage > 1)
+        self.ui.btnPrevPage.setEnabled(self.currentPage > 1)
+        self.ui.btnNextPage.setEnabled(self.currentPage < page_count)
+        self.ui.btnLastPage.setEnabled(self.currentPage < page_count)
+        return True
+
+    def loadPage(self, page):
+        self._loadDataPage(self.currentPageFilters, page=page)
+
+    def changePageSize(self, index):
+        try:
+            text = self.ui.cbPageSize.itemText(index)
+            self.pageSize = int(text.split("/", 1)[0].strip())
+        except (ValueError, IndexError):
+            QMessageBox.warning(self, "Lỗi", "Kích thước trang không hợp lệ.")
+            return
+        self._loadDataPage(self.currentPageFilters, page=1)
 
     def _displayData(self, data_list):
         self.displayedData = list(data_list)
@@ -75,10 +131,8 @@ class MainWindowEx(QMainWindow):
                 table.setItem(row_index, column_index, QTableWidgetItem(text))
 
         table.setSortingEnabled(sorting_enabled)
-        self.ui.lblRecordCount.setText(f"Tổng: {len(data_list)} bản ghi")
+        self.ui.lblRecordCount.setText(f"Tổng: {self.totalRecords} bản ghi")
         self.updateSelectedCount()
-        if getattr(self, "dataVisualizationUi", None) is not None:
-            self.dataVisualizationUi.updateCharts(self.displayedData)
 
     # Bộ lọc
     def setupFilterOptions(self, preserve_selection=False):
@@ -214,7 +268,8 @@ class MainWindowEx(QMainWindow):
         if not self.setupFilterOptions(preserve_selection=True):
             return
         self.updatePriceRange(preserve_values=True)
-        self.ApplyFilter()
+        if self._loadDataPage(self.currentFilters()):
+            self._updateOpenVisualization()
 
     def updateSelectedCount(self):
         selected_count = len(self.ui.tblData.selectionModel().selectedRows())
@@ -303,11 +358,8 @@ class MainWindowEx(QMainWindow):
         return record_ids
 
     def ApplyFilter(self):
-        data_list = DataDAO.filter_data(self.currentFilters())
-        if data_list is None:
-            QMessageBox.warning(self, "Lỗi", "Không thể lọc dữ liệu từ cơ sở dữ liệu.")
-            return
-        self._displayData(data_list)
+        if self._loadDataPage(self.currentFilters(), page=1):
+            self._updateOpenVisualization()
 
     def ClearFilter(self):
         for combo in (
@@ -321,7 +373,7 @@ class MainWindowEx(QMainWindow):
             combo.blockSignals(False)
         self.ui.edtSearch.clear()
         self.updatePriceRange()
-        self.showDataBase()
+        self.ApplyFilter()
 
     # CRUD
     def addData(self):
@@ -377,15 +429,8 @@ class MainWindowEx(QMainWindow):
         self.refreshData()
 
     def exportData(self):
-        file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            "Xuất dữ liệu",
-            "data.csv",
-            "CSV (*.csv)",
-        )
-        if not file_path:
-            return
-        data_list = DataDAO.filter_data(self.currentFilters())
+        file_path = Path(__file__).resolve().parent.parent / "databases" / "cleaned_data.csv"
+        data_list = DataDAO.filter_data(self.currentPageFilters)
         if data_list is None:
             QMessageBox.warning(self, "Lỗi", "Không thể tải dữ liệu để xuất.")
             return
@@ -408,7 +453,7 @@ class MainWindowEx(QMainWindow):
         QMessageBox.information(
             self,
             "Xuất dữ liệu",
-            f"Đã xuất {len(data_list)} bản ghi ra tệp CSV.",
+            f"Đã xuất {len(data_list)} bản ghi ra tệp CSV:\n{file_path}",
         )
 
     def openDataVisualization(self):
@@ -417,8 +462,58 @@ class MainWindowEx(QMainWindow):
             self.dataVisualizationWindow = QMainWindow()
             self.dataVisualizationUi = DataVisualizationEx()
             self.dataVisualizationUi.setupUi(self.dataVisualizationWindow)
-        self.dataVisualizationUi.updateCharts(self.displayedData)
+        if not self._updateOpenVisualization():
+            return
         self.dataVisualizationUi.showWindow()
-    def refreshData(self):
-        self.displayedData = DataDAO.filter_data(self.currentFilters())
-        self.updateTable()
+
+    def _updateOpenVisualization(self):
+        if getattr(self, "dataVisualizationUi", None) is None:
+            return False
+        data_list = DataDAO.filter_data(self.currentPageFilters)
+        if data_list is None:
+            QMessageBox.warning(self, "Lỗi", "Không thể tải dữ liệu để trực quan hóa.")
+            return False
+        self.dataVisualizationUi.updateCharts(data_list)
+        return True
+
+    def openRegression(self):
+        from ui.regression_EX import RegressionScreenEx
+
+        if self.regressionWindow is None:
+            self.regressionWindow = QMainWindow()
+            self.regressionUi = RegressionScreenEx()
+            self.regressionUi.setupUi(self.regressionWindow)
+        self.regressionUi.showWindow()
+    def openClassification(self):
+        from ui.classificationUI import ClassificationPage
+
+        if self.classificationWindow is not None:
+            self.classificationWindow.show()
+            self.classificationWindow.raise_()
+            self.classificationWindow.activateWindow()
+            return
+
+        records = DataDAO.show_all_data()
+        if records is None:
+            QMessageBox.warning(
+                self,
+                "Lỗi",
+                "Không thể tải dữ liệu sự kiện để mở Classification.",
+            )
+            return
+        if not records:
+            QMessageBox.information(
+                self,
+                "Thông báo",
+                "Cơ sở dữ liệu chưa có dữ liệu sự kiện để phân loại.",
+            )
+            return
+
+        window = QMainWindow(self)
+        window.setWindowTitle("Phân loại khả năng mua hàng")
+        window.resize(1450, 900)
+        page = ClassificationPage(records)
+        window.setCentralWidget(page)
+        self.classificationWindow = window
+        self.classificationUi = page
+        window.show()

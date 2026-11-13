@@ -585,7 +585,7 @@ class Ui_MainWindow(object):
         self.lblSelected.setText(_translate("MainWindow", "Đã chọn: 0"))
         self.btnRefresh.setToolTip(_translate("MainWindow", "Tải lại dữ liệu"))
         self.btnRefresh.setText(_translate("MainWindow", "Làm mới"))
-        self.btnExport.setToolTip(_translate("MainWindow", "Xuất toàn bộ dữ liệu ra file"))
+        self.btnExport.setToolTip(_translate("MainWindow", "Xuất dữ liệu đang lọc ra databases/cleaned_data.csv"))
         self.btnExport.setText(_translate("MainWindow", "Xuất dữ liệu"))
         self.tblData.setSortingEnabled(True)
         item = self.tblData.horizontalHeaderItem(0)

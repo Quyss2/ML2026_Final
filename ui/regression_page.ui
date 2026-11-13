@@ -1,0 +1,1202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>RegressionPage</class>
+ <widget class="QWidget" name="RegressionPage">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1280</width>
+    <height>840</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Regression - Dự đoán doanh thu theo phiên truy cập</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QWidget{font-family:"Segoe UI";font-size:10pt;color:#1f2937;background:#f3f4f6;}
+QLabel{background:transparent;}
+QCheckBox{background:transparent;}
+QGroupBox{background:#ffffff;border:1px solid #d1d5db;border-radius:6px;margin-top:14px;padding:10px;font-weight:600;}
+QGroupBox::title{subcontrol-origin:margin;left:10px;padding:0 6px;color:#1e3a8a;}
+QPushButton{background:#1e40af;color:#ffffff;border:none;border-radius:4px;padding:6px 12px;}
+QPushButton:hover{background:#1d4ed8;}
+QPushButton:disabled{background:#9ca3af;}
+QLineEdit,QSpinBox,QDoubleSpinBox,QComboBox{background:#ffffff;border:1px solid #cbd5e1;border-radius:4px;padding:3px 6px;}
+QTableWidget{background:#ffffff;gridline-color:#e5e7eb;}
+QHeaderView::section{background:#1e3a8a;color:#ffffff;padding:4px;border:none;}
+QTabWidget::pane{border:1px solid #d1d5db;background:#ffffff;}
+QProgressBar{border:1px solid #cbd5e1;border-radius:4px;text-align:center;background:#ffffff;}
+QProgressBar::chunk{background:#1e40af;}
+QPlainTextEdit{background:#ffffff;border:1px solid #cbd5e1;}
+QLabel#lblTitle{font-size:16pt;font-weight:700;color:#1e3a8a;}
+QLabel#lblSubtitle{color:#6b7280;}
+QLabel#lblPredictResult{font-size:18pt;font-weight:700;color:#065f46;}
+QFrame#framePredictResult{background:#ecfdf5;border:1px solid #6ee7b7;border-radius:6px;}
+QFrame#frameChart{background:#ffffff;border:1px dashed #9ca3af;}</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayoutRoot">
+   <property name="spacing">
+    <number>8</number>
+   </property>
+   <item>
+    <widget class="QLabel" name="lblTitle">
+      <property name="wordWrap">
+       <bool>true</bool>
+      </property>
+      <property name="text">
+      <string>Hồi quy: Dự đoán doanh thu theo phiên truy cập</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="lblSubtitle">
+      <property name="wordWrap">
+       <bool>true</bool>
+      </property>
+      <property name="text">
+      <string>Ước lượng tổng giá trị chi tiêu (price cộng dồn) của một user_session từ hành vi ban đầu, phục vụ dự báo doanh thu và phân bổ ngân sách marketing</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayoutMain">
+     <property name="spacing">
+      <number>10</number>
+     </property>
+     <item>
+      <widget class="QScrollArea" name="scrollSteps">
+       <property name="minimumSize">
+        <size>
+         <width>440</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>470</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
+       <property name="widgetResizable">
+        <bool>true</bool>
+       </property>
+       <widget class="QWidget" name="scrollContents">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>440</width>
+          <height>1500</height>
+         </rect>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayoutSteps">
+         <property name="spacing">
+          <number>8</number>
+         </property>
+         <item>
+          <widget class="QGroupBox" name="grpStep1">
+           <property name="title">
+            <string>1. Chọn dữ liệu</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayoutStep1">
+            <item>
+             <layout class="QFormLayout" name="formStep1">
+              <item row="0" column="0">
+               <widget class="QLabel" name="lblTable">
+                <property name="text">
+                 <string>Bảng dữ liệu</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="cboTable">
+                <item>
+                 <property name="text">
+                  <string>events</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="lblRowCountTitle">
+                <property name="text">
+                 <string>Số dòng sự kiện</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLabel" name="lblRowCount">
+                <property name="text">
+                 <string>-- dòng</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnLoadData">
+              <property name="text">
+               <string>Tải dữ liệu</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="grpStep2">
+           <property name="title">
+            <string>2. Tiền xử lý mức sự kiện</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayoutStep2">
+            <item>
+             <widget class="QCheckBox" name="chkDropDuplicates">
+              <property name="text">
+               <string>Loại bỏ dòng trùng lặp</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="chkDropInvalidPrice">
+              <property name="text">
+               <string>Loại dòng thiếu session/time và price nhỏ hơn hoặc bằng 0</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="chkFillBrand">
+              <property name="text">
+               <string>Gán brand rỗng thành "unknown"</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="chkSplitCategory">
+              <property name="text">
+               <string>Tách category_code thành level1 / level2</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="chkDropColumns">
+              <property name="text">
+               <string>Bỏ cột id, category_id</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnPreprocess">
+              <property name="text">
+               <string>Thực hiện tiền xử lý</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lblPreprocessStatus">
+              <property name="text">
+               <string>Trạng thái: chưa thực hiện</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="grpStep3">
+           <property name="title">
+            <string>3. Cửa sổ quan sát, đặc trưng và biến mục tiêu</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayoutStep3">
+            <item>
+             <layout class="QFormLayout" name="formStep3">
+              <item row="0" column="0">
+               <widget class="QLabel" name="lblWindowN">
+                <property name="text">
+                 <string>N sự kiện đầu của phiên</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QSpinBox" name="spinWindowN">
+                <property name="minimum">
+                 <number>1</number>
+                </property>
+                <property name="maximum">
+                 <number>50</number>
+                </property>
+                <property name="value">
+                 <number>5</number>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="chkOnlyCart">
+              <property name="text">
+               <string>Chỉ lấy phiên có ít nhất 1 cart trong N sự kiện đầu</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lblTargetDef">
+              <property name="text">
+               <string>y = tổng price của purchase toàn phiên; phiên không mua có y = 0. Đặc trưng chỉ lấy sự kiện quan sát trước purchase để tránh rò rỉ mục tiêu.</string>
+              </property>
+              <property name="wordWrap">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="chkClipP99">
+              <property name="text">
+               <string>Cắt outlier của y ở phân vị 99 (tính trên train)</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="chkLog1p">
+              <property name="text">
+               <string>Huấn luyện trên log1p(y) (tùy chọn; mặc định dùng thang doanh thu)</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnBuildFeatures">
+              <property name="text">
+               <string>Tạo bảng đặc trưng theo phiên</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lblSessionCount">
+              <property name="text">
+               <string>Số phiên sau khi lọc: --</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="grpStep4">
+           <property name="title">
+            <string>4. Chia dữ liệu theo thời gian và mã hóa</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayoutStep4">
+            <item>
+             <layout class="QFormLayout" name="formStep4">
+              <item row="0" column="0">
+               <widget class="QLabel" name="lblTrainPct">
+                <property name="text">
+                 <string>Tỷ lệ tập train (các ngày đầu)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QSpinBox" name="spinTrainPct">
+                <property name="suffix">
+                 <string> %</string>
+                </property>
+                <property name="minimum">
+                 <number>50</number>
+                </property>
+                <property name="maximum">
+                 <number>95</number>
+                </property>
+                <property name="value">
+                 <number>80</number>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="chkEncode">
+              <property name="text">
+               <string>Mã hóa One-Hot (category, thứ trong tuần)</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="chkScale">
+              <property name="text">
+               <string>Chuẩn hóa StandardScaler (đặc trưng số)</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnSplit">
+              <property name="text">
+               <string>Chia dữ liệu</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lblSplitInfo">
+              <property name="text">
+               <string>Train: -- phiên | Test: -- phiên</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="grpStep5">
+           <property name="title">
+            <string>5. Chọn mô hình và tham số</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayoutStep5">
+            <item>
+             <widget class="QCheckBox" name="chkLinear">
+              <property name="text">
+               <string>Linear Regression</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="chkRandomForest">
+              <property name="text">
+               <string>Random Forest</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="chkGradientBoosting">
+              <property name="text">
+               <string>Gradient Boosting</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+            <layout class="QFormLayout" name="formStep5">
+              <item row="0" column="0">
+               <widget class="QLabel" name="lblNEstimators">
+                <property name="text">
+                 <string>n_estimators (RF, GB)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QSpinBox" name="spinNEstimators">
+                <property name="minimum">
+                 <number>10</number>
+                </property>
+                <property name="maximum">
+                 <number>2000</number>
+                </property>
+                <property name="value">
+                 <number>200</number>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="lblMaxDepth">
+                <property name="text">
+                 <string>max_depth (RF, GB)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QSpinBox" name="spinMaxDepth">
+                <property name="minimum">
+                 <number>1</number>
+                </property>
+                <property name="maximum">
+                 <number>50</number>
+                </property>
+                <property name="value">
+                 <number>8</number>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="lblLearningRate">
+                <property name="text">
+                 <string>learning_rate (GB)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QDoubleSpinBox" name="dsbLearningRate">
+                <property name="decimals">
+                 <number>3</number>
+                </property>
+                <property name="minimum">
+                 <double>0.001000000000000</double>
+                </property>
+                <property name="maximum">
+                 <double>1.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.010000000000000</double>
+                </property>
+                <property name="value">
+                 <double>0.100000000000000</double>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="grpStep6">
+           <property name="title">
+            <string>6. Huấn luyện và đánh giá</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayoutStep6">
+            <item>
+             <widget class="QPushButton" name="btnTrain">
+              <property name="text">
+               <string>Huấn luyện các mô hình đã chọn</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QProgressBar" name="progressTrain">
+              <property name="value">
+               <number>0</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnSaveModel">
+              <property name="text">
+               <string>Xuất mô hình đang chọn</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnLoadModel">
+              <property name="text">
+               <string>Nạp mô hình đã huấn luyện</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacerSteps">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+     <item>
+      <widget class="QTabWidget" name="tabResult">
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <widget class="QWidget" name="tabData">
+        <attribute name="title">
+         <string>Dữ liệu sự kiện</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayoutTabData">
+         <item>
+          <widget class="QTableWidget" name="tblPreview">
+           <property name="alternatingRowColors">
+            <bool>true</bool>
+           </property>
+           <property name="editTriggers">
+            <set>QAbstractItemView::NoEditTriggers</set>
+           </property>
+           <column>
+            <property name="text">
+             <string>event_time</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>event_type</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>product_id</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>category_level1</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>category_level2</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>brand</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>price</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>user_id</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>user_session</string>
+            </property>
+           </column>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tabFeatures">
+        <attribute name="title">
+         <string>Bảng đặc trưng theo phiên</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayoutTabFeatures">
+         <item>
+          <widget class="QTableWidget" name="tblFeatures">
+           <property name="alternatingRowColors">
+            <bool>true</bool>
+           </property>
+           <property name="editTriggers">
+            <set>QAbstractItemView::NoEditTriggers</set>
+           </property>
+           <column>
+            <property name="text">
+             <string>user_session</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>n_view</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>n_cart</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>n_products</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>n_categories</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>n_brands</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>avg_price</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>max_price</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>top_category</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>hour</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>weekday</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>revenue (y)</string>
+            </property>
+           </column>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tabMetrics">
+        <attribute name="title">
+         <string>Kết quả đánh giá</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayoutTabMetrics">
+         <item>
+          <widget class="QTableWidget" name="tblMetrics">
+           <property name="editTriggers">
+            <set>QAbstractItemView::NoEditTriggers</set>
+           </property>
+           <row>
+            <property name="text">
+             <string>Linear</string>
+            </property>
+           </row>
+           <row>
+            <property name="text">
+             <string>Random Forest</string>
+            </property>
+           </row>
+           <row>
+            <property name="text">
+             <string>Gradient Boosting</string>
+            </property>
+           </row>
+           <row>
+            <property name="text">
+             <string>Baseline 0 USD</string>
+            </property>
+           </row>
+           <column>
+            <property name="text">
+             <string>MAE (USD)</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>RMSE (USD)</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>R² (log1p)</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>R² (doanh thu)</string>
+            </property>
+           </column>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lblEvalSummary">
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+           <property name="text">
+            <string>Baseline: dự đoán 0 USD cho mọi phiên.</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lblBestModel">
+           <property name="text">
+            <string>Mô hình tốt nhất: --</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tabChart">
+        <attribute name="title">
+         <string>Biểu đồ</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayoutTabChart">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayoutChartTop">
+           <item>
+            <widget class="QLabel" name="lblChartType">
+             <property name="text">
+              <string>Loại biểu đồ</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="cboChartType">
+             <item>
+              <property name="text">
+               <string>Thực tế so với Dự đoán</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Phần dư (Residual)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Mức độ quan trọng của đặc trưng</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Doanh thu theo ngày: Thực tế so với Dự báo</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="cboChartModel">
+             <item>
+              <property name="text">
+               <string>Linear</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Random Forest</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Gradient Boosting</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btnDrawChart">
+             <property name="text">
+              <string>Vẽ biểu đồ</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacerChart">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QFrame" name="frameChart">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>300</height>
+            </size>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayoutFrameChart">
+            <item>
+             <widget class="QLabel" name="lblChartPlaceholder">
+              <property name="text">
+               <string>Khu vực hiển thị biểu đồ</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tabLog">
+        <attribute name="title">
+         <string>Nhật ký</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayoutTabLog">
+         <item>
+          <widget class="QPlainTextEdit" name="txtLog">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="grpStep7">
+     <property name="title">
+      <string>7. Dự đoán doanh thu cho một phiên</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayoutStep7">
+      <property name="horizontalSpacing">
+       <number>12</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="lblPredView">
+        <property name="text">
+         <string>Số lượt view</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="spinPredView">
+        <property name="maximum">
+         <number>50</number>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLabel" name="lblPredCart">
+        <property name="text">
+         <string>Số lần thêm giỏ hàng</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QSpinBox" name="spinPredCart">
+        <property name="maximum">
+         <number>50</number>
+        </property>
+        <property name="value">
+         <number>1</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="lblPredProducts">
+        <property name="text">
+         <string>Số sản phẩm khác nhau</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="spinPredProducts">
+        <property name="maximum">
+         <number>50</number>
+        </property>
+        <property name="value">
+         <number>1</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QLabel" name="lblPredCategories">
+        <property name="text">
+         <string>Số category khác nhau</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="QSpinBox" name="spinPredCategories">
+        <property name="maximum">
+         <number>50</number>
+        </property>
+        <property name="value">
+         <number>1</number>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="lblPredBrands">
+        <property name="text">
+         <string>Số brand khác nhau</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QSpinBox" name="spinPredBrands">
+        <property name="maximum">
+         <number>50</number>
+        </property>
+        <property name="value">
+         <number>1</number>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QLabel" name="lblPredCategory">
+        <property name="text">
+         <string>Category quan tâm nhất</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="3">
+       <widget class="QComboBox" name="cboPredCategory">
+        <item>
+         <property name="text">
+          <string>electronics</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>appliances</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>computers</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>apparel</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>furniture</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>auto</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>construction</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>kids</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>accessories</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>sport</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>unknown</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="lblPredAvgPrice">
+        <property name="text">
+         <string>Giá trung bình</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QDoubleSpinBox" name="dsbPredAvgPrice">
+        <property name="maximum">
+         <double>100000.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>100.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QLabel" name="lblPredMaxPrice">
+        <property name="text">
+         <string>Giá lớn nhất</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="3">
+       <widget class="QDoubleSpinBox" name="dsbPredMaxPrice">
+        <property name="maximum">
+         <double>100000.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>150.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="lblPredHour">
+        <property name="text">
+         <string>Giờ bắt đầu phiên</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QSpinBox" name="spinPredHour">
+        <property name="maximum">
+         <number>23</number>
+        </property>
+        <property name="value">
+         <number>12</number>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="2">
+       <widget class="QLabel" name="lblPredWeekday">
+        <property name="text">
+         <string>Thứ trong tuần</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="3">
+       <widget class="QComboBox" name="cboPredWeekday">
+        <item>
+         <property name="text">
+          <string>Thứ hai</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Thứ ba</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Thứ tư</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Thứ năm</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Thứ sáu</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Thứ bảy</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Chủ nhật</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="lblPredModel">
+        <property name="text">
+         <string>Mô hình dự đoán</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QComboBox" name="cboPredModel">
+        <item>
+         <property name="text">
+          <string>Linear</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Random Forest</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Gradient Boosting</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="5" column="3">
+       <widget class="QPushButton" name="btnPredict">
+        <property name="text">
+         <string>Dự đoán doanh thu</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="4" rowspan="6">
+       <widget class="QFrame" name="framePredictResult">
+        <property name="minimumSize">
+         <size>
+          <width>260</width>
+          <height>0</height>
+         </size>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayoutPredictResult">
+         <item>
+          <widget class="QLabel" name="lblPredictTitle">
+           <property name="text">
+            <string>Doanh thu dự đoán của phiên</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lblPredictResult">
+           <property name="text">
+            <string>-- USD</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
