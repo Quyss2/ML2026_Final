@@ -14,9 +14,27 @@ from PyQt6.QtWidgets import (
     QTableWidgetItem,
     QVBoxLayout,
 )
-from PyQt6.QtCore import QDateTime
+from PyQt6.QtCore import QDateTime, QObject, QThread, pyqtSignal
 from dal.data_dao import DataDAO
 from ui.mainwindow import Ui_MainWindow
+
+
+class _ClassificationDataWorker(QObject):
+    completed = pyqtSignal(object, object)
+    failed = pyqtSignal(str)
+
+    def run(self):
+        try:
+            records = DataDAO.show_all_data()
+            if records is None:
+                raise RuntimeError("Không thể tải dữ liệu sự kiện từ cơ sở dữ liệu.")
+
+            from prediction.classification import PurchaseClassifier
+
+            cleaned_records, report = PurchaseClassifier.clean_records(records)
+            self.completed.emit(cleaned_records, report)
+        except Exception as error:
+            self.failed.emit(str(error))
 
 
 class MainWindowEx(QMainWindow):
@@ -32,6 +50,8 @@ class MainWindowEx(QMainWindow):
         self.regressionUi = None
         self.classificationWindow = None
         self.classificationUi = None
+        self._classificationThread = None
+        self._classificationWorker = None
         self.currentPage = 1
         self.pageSize = 10
         self.totalRecords = 0
@@ -493,27 +513,52 @@ class MainWindowEx(QMainWindow):
             self.classificationWindow.activateWindow()
             return
 
-        records = DataDAO.show_all_data()
-        if records is None:
-            QMessageBox.warning(
-                self,
-                "Lỗi",
-                "Không thể tải dữ liệu sự kiện để mở Classification.",
-            )
-            return
-        if not records:
-            QMessageBox.information(
-                self,
-                "Thông báo",
-                "Cơ sở dữ liệu chưa có dữ liệu sự kiện để phân loại.",
-            )
-            return
-
         window = QMainWindow(self)
         window.setWindowTitle("Phân loại khả năng mua hàng")
         window.resize(1450, 900)
-        page = ClassificationPage(records)
+        page = ClassificationPage([])
+        page.trainButton.setEnabled(False)
+        page.status.setText("Đang tải và tiền xử lý dữ liệu sự kiện...")
         window.setCentralWidget(page)
         self.classificationWindow = window
         self.classificationUi = page
         window.show()
+
+        thread = QThread(self)
+        worker = _ClassificationDataWorker()
+        worker.moveToThread(thread)
+        thread.started.connect(worker.run)
+        worker.completed.connect(self._classificationDataLoaded)
+        worker.failed.connect(self._classificationDataFailed)
+        worker.completed.connect(thread.quit)
+        worker.failed.connect(thread.quit)
+        thread.finished.connect(worker.deleteLater)
+        thread.finished.connect(self._classificationLoadFinished)
+        self._classificationThread = thread
+        self._classificationWorker = worker
+        thread.start()
+
+    def _classificationDataLoaded(self, records, report):
+        if self.classificationUi is not None:
+            self.classificationUi.setCleanedData(records, report)
+        if not records and self.classificationWindow is not None:
+            QMessageBox.information(
+                self,
+                "Thông báo",
+                "Cơ sở dữ liệu chưa có dữ liệu sự kiện phù hợp để phân loại.",
+            )
+
+    def _classificationDataFailed(self, message):
+        QMessageBox.warning(
+            self,
+            "Lỗi tải dữ liệu",
+            f"Không thể mở Classification: {message}",
+        )
+        if self.classificationWindow is not None:
+            self.classificationWindow.close()
+        self.classificationWindow = None
+        self.classificationUi = None
+
+    def _classificationLoadFinished(self):
+        self._classificationThread = None
+        self._classificationWorker = None

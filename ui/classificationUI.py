@@ -59,15 +59,7 @@ class ClassificationPage(QWidget):
         super().__init__(parent)
         self.setObjectName("contentWidget")
         self.records, self.cleaningReport = PurchaseClassifier.clean_records(records)
-        self._value_counts = {
-            "category_code": Counter(),
-            "brand": Counter(),
-        }
-        for record in self.records:
-            for field, counts in self._value_counts.items():
-                value = record.get(field)
-                if value:
-                    counts[value] += 1
+        self._value_counts = self._count_values(self.records)
         self.classifier = PurchaseClassifier()
         self._training_thread = None
         self._training_worker = None
@@ -326,12 +318,6 @@ class ClassificationPage(QWidget):
             self.weekday.addItem(day)
         self.category = self._category_input()
         self.brand = self._category_input()
-        self._set_category_options(
-            self.category,
-            self._most_common_value("category_code"),
-        )
-        self._set_category_options(self.brand, self._most_common_value("brand"))
-
         fields = (
             ("Số lượt xem", self.viewCount),
             ("Số lượt thêm giỏ hàng", self.cartCount),
@@ -382,11 +368,57 @@ class ClassificationPage(QWidget):
 
         scroll.setWidget(content)
         root.addWidget(scroll)
+        self._set_category_options(
+            self.category,
+            self._most_common_value("category_code"),
+        )
+        self._set_category_options(
+            self.brand,
+            self._most_common_value("brand"),
+        )
         self.trainButton.clicked.connect(self.trainModel)
         self.evaluateButton.clicked.connect(self.evaluateModel)
         self.saveButton.clicked.connect(self.saveModel)
         self.loadButton.clicked.connect(self.loadModel)
         self.predictButton.clicked.connect(self.predict)
+        self.trainButton.setEnabled(bool(self.records))
+
+    @staticmethod
+    def _count_values(records):
+        counts = {
+            "category_code": Counter(),
+            "brand": Counter(),
+        }
+        for record in records:
+            for field, field_counts in counts.items():
+                value = record.get(field)
+                if value:
+                    field_counts[value] += 1
+        return counts
+
+    def setCleanedData(self, records, report):
+        """Attach records cleaned by the background data-loading worker."""
+        self.records = records
+        self.cleaningReport = report
+        self._value_counts = self._count_values(records)
+        self.datasetSummary.setText(
+            f"Nguồn dữ liệu: events (CSDL) · "
+            f"{report['raw_count']:,} dòng đầu vào · "
+            f"{report['clean_count']:,} dòng hợp lệ"
+        )
+        self.cleaningSummary.setText(self._cleaning_summary())
+        self.dataTable.setRowCount(min(200, len(records)))
+        self._populate_data_table()
+        self._set_category_options(
+            self.category,
+            self._most_common_value("category_code"),
+        )
+        self._set_category_options(
+            self.brand,
+            self._most_common_value("brand"),
+        )
+        self.trainButton.setEnabled(bool(records))
+        self.status.setText("Dữ liệu đã sẵn sàng để huấn luyện.")
 
     def _cleaning_summary(self):
         report = self.cleaningReport

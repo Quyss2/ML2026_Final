@@ -26,9 +26,22 @@ class DataDAO:
         df = conn.queryDataset(sql)
         if df is None:
             return None
+        return DataDAO._records_from_frame(df)
+
+    @staticmethod
+    def _records_from_frame(df):
+        column_positions = {
+            column: index for index, column in enumerate(df.columns)
+        }
+        positions = [column_positions[column] for column in DataDAO.COLUMNS]
         return [
-            Data(**{column: row[column] for column in DataDAO.COLUMNS})
-            for _, row in df.iterrows()
+            Data(
+                **{
+                    column: row[position]
+                    for column, position in zip(DataDAO.COLUMNS, positions)
+                }
+            )
+            for row in df.itertuples(index=False, name=None)
         ]
 
     @staticmethod
@@ -107,10 +120,7 @@ class DataDAO:
         df = conn.queryDataset(sql, params)
         if df is None:
             return None
-        return [
-            Data(**{column: row[column] for column in DataDAO.COLUMNS})
-            for _, row in df.iterrows()
-        ]
+        return DataDAO._records_from_frame(df)
 
     @staticmethod
     def filter_data(filters, limit=None, offset=0):
